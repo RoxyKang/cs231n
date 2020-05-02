@@ -15,7 +15,7 @@ def svm_loss_naive(W, X, y, reg):
     - X: A numpy array of shape (N, D) containing a minibatch of data.
     - y: A numpy array of shape (N,) containing training labels; y[i] = c means
       that X[i] has label c, where 0 <= c < C.
-    - reg: (float) regularization strength
+    - reg: (float) regularization strength (lambda)
 
     Returns a tuple of:
     - loss as single float
@@ -26,6 +26,7 @@ def svm_loss_naive(W, X, y, reg):
     # compute the loss and the gradient
     num_classes = W.shape[1]
     num_train = X.shape[0]
+    num_dim = X.shape[1]
     loss = 0.0
     for i in range(num_train):
         scores = X[i].dot(W)
@@ -33,16 +34,21 @@ def svm_loss_naive(W, X, y, reg):
         for j in range(num_classes):
             if j == y[i]:
                 continue
-            margin = scores[j] - correct_class_score + 1 # note delta = 1
+            margin = scores[j] - correct_class_score + 1 # note delta = 1, = threshold
             if margin > 0:
                 loss += margin
+                dW[:, y[i]] -= X[i]
+                dW[:,j] += X[i]
+        
 
     # Right now the loss is a sum over all training examples, but we want it
     # to be an average instead so we divide by num_train.
     loss /= num_train
+    dW /= num_train
 
     # Add regularization to the loss.
-    loss += reg * np.sum(W * W)
+    loss += reg * np.sum(W * W) # (L2), element-wise multiplication
+    dW += reg * 2 * W
 
     #############################################################################
     # TODO:                                                                     #
@@ -53,8 +59,6 @@ def svm_loss_naive(W, X, y, reg):
     # code above to compute the gradient.                                       #
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     
