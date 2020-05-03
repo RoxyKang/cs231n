@@ -34,10 +34,10 @@ def svm_loss_naive(W, X, y, reg):
         for j in range(num_classes):
             if j == y[i]:
                 continue
-            margin = scores[j] - correct_class_score + 1 # note delta = 1, = threshold
+            margin = scores[j] - correct_class_score + 1 # note delta = 1 = threshold
             if margin > 0:
                 loss += margin
-                dW[:, y[i]] -= X[i]
+                dW[:,y[i]] -= X[i]
                 dW[:,j] += X[i]
         
 
@@ -82,7 +82,18 @@ def svm_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    # Steps to calculate the loss
+    # For each training example, for each class, calculate the score
+    # And if the score is higher than a value, adds to loss
+
+    scores = X.dot(W)
+    train_num_index = list(range(X.shape[0]))
+    correct_class_score = scores[train_num_index, list(y)]
+    correct_class_score = np.reshape(correct_class_score, [X.shape[0], 1])
+    margin = np.maximum(0, scores - correct_class_score + 1)
+    margin[train_num_index, list(y)] = 0
+    loss = np.sum(margin)/X.shape[0]
+    loss += reg * np.sum(W * W)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -96,8 +107,13 @@ def svm_loss_vectorized(W, X, y, reg):
     # loss.                                                                     #
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
+    
+    margin[margin > 0] = 1
+    positive_margin_count = np.sum(margin, axis=1)
+    margin[train_num_index, list(y)] -= positive_margin_count
+    dW = margin.T.dot(X).T
+    dW /= X.shape[0]
+    dW += reg * 2 * W
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
